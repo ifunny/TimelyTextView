@@ -2,6 +2,7 @@ package com.github.adnansm.timelytextview;
 
 import android.animation.ObjectAnimator;
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -14,107 +15,110 @@ import com.github.adnansm.timelytextview.animation.TimelyEvaluator;
 import com.github.adnansm.timelytextview.model.NumberUtils;
 
 public class TimelyView extends View {
-    private static final float                           RATIO                   = 1f;
-    private static final Property<TimelyView, float[][]> CONTROL_POINTS_PROPERTY =
-            new Property<TimelyView, float[][]>(float[][].class, "controlPoints") {
-        @Override
-        public float[][] get(TimelyView object) {
-            return object.getControlPoints();
-        }
+	private static final float RATIO = 1f;
+	private static final Property<TimelyView, float[][]> CONTROL_POINTS_PROPERTY =
+			new Property<TimelyView, float[][]>(float[][].class, "controlPoints") {
+				@Override
+				public float[][] get(TimelyView object) {
+					return object.getControlPoints();
+				}
 
-        @Override
-        public void set(TimelyView object, float[][] value) {
-            object.setControlPoints(value);
-        }
-    };
-    private              Paint                           mPaint                  = null;
-    private              Path                            mPath                   = null;
-    private              float[][]                       controlPoints           = null;
+				@Override
+				public void set(TimelyView object, float[][] value) {
+					object.setControlPoints(value);
+				}
+			};
+	private Paint mPaint = null;
+	private Path mPath = null;
+	private float[][] controlPoints = null;
 
-    public TimelyView(Context context) {
-        super(context);
-        init();
-    }
+	public TimelyView(Context context) {
+		this(context, null);
+	}
 
-    public TimelyView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        init();
-    }
+	public TimelyView(Context context, AttributeSet attrs) {
+		this(context, attrs, 0);
+	}
 
-    public TimelyView(Context context, AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr);
-        init();
-    }
+	public TimelyView(Context context, AttributeSet attrs, int defStyleAttr) {
+		super(context, attrs, defStyleAttr);
+		final TypedArray a = context.obtainStyledAttributes(
+				attrs, R.styleable.TimelyView, defStyleAttr, 0
+		);
+		int textColor;
+		try {
+			textColor = a.getColor(R.styleable.TimelyView_timely_text_color, Color.BLACK);
+		} finally {
+			a.recycle();
+		}
 
-    public float[][] getControlPoints() {
-        return controlPoints;
-    }
+		mPaint = new Paint();
+		mPaint.setAntiAlias(true);
+		mPaint.setColor(textColor);
+		mPaint.setStrokeWidth(2.0f);
+		mPaint.setStyle(Paint.Style.STROKE);
+		mPath = new Path();
+	}
 
-    public void setControlPoints(float[][] controlPoints) {
-        this.controlPoints = controlPoints;
-        invalidate();
-    }
+	public float[][] getControlPoints() {
+		return controlPoints;
+	}
 
-    public ObjectAnimator animate(int start, int end) {
-        float[][] startPoints = NumberUtils.getControlPointsFor(start);
-        float[][] endPoints = NumberUtils.getControlPointsFor(end);
+	public void setControlPoints(float[][] controlPoints) {
+		this.controlPoints = controlPoints;
+		invalidate();
+	}
 
-        return ObjectAnimator.ofObject(this, CONTROL_POINTS_PROPERTY, new TimelyEvaluator(), startPoints, endPoints);
-    }
+	public ObjectAnimator animate(int start, int end) {
+		float[][] startPoints = NumberUtils.getControlPointsFor(start);
+		float[][] endPoints = NumberUtils.getControlPointsFor(end);
 
-    public ObjectAnimator animate(int end) {
-        float[][] startPoints = NumberUtils.getControlPointsFor(-1);
-        float[][] endPoints = NumberUtils.getControlPointsFor(end);
+		return ObjectAnimator.ofObject(this, CONTROL_POINTS_PROPERTY, new TimelyEvaluator(), startPoints, endPoints);
+	}
 
-        return ObjectAnimator.ofObject(this, CONTROL_POINTS_PROPERTY, new TimelyEvaluator(), startPoints, endPoints);
-    }
+	public ObjectAnimator animate(int end) {
+		float[][] startPoints = NumberUtils.getControlPointsFor(-1);
+		float[][] endPoints = NumberUtils.getControlPointsFor(end);
 
-    @Override
-    protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
-        if (controlPoints == null) return;
+		return ObjectAnimator.ofObject(this, CONTROL_POINTS_PROPERTY, new TimelyEvaluator(), startPoints, endPoints);
+	}
 
-        final float minDimen = 0.95f * Math.min(getWidth(), getHeight());
+	@Override
+	protected void onDraw(Canvas canvas) {
+		super.onDraw(canvas);
+		if (controlPoints == null) return;
 
-        mPath.reset();
-        mPath.moveTo(minDimen * controlPoints[0][0], minDimen * controlPoints[0][1]);
-        final int length = controlPoints.length;
-        for (int i = 1; i < length; i += 3) {
-            mPath.cubicTo(minDimen * controlPoints[i][0], minDimen * controlPoints[i][1],
-                          minDimen * controlPoints[i + 1][0], minDimen * controlPoints[i + 1][1],
-                          minDimen * controlPoints[i + 2][0], minDimen * controlPoints[i + 2][1]);
-        }
-        canvas.drawPath(mPath, mPaint);
-    }
+		final float minDimen = 0.95f * Math.min(getWidth(), getHeight());
 
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+		mPath.reset();
+		mPath.moveTo(minDimen * controlPoints[0][0], minDimen * controlPoints[0][1]);
+		final int length = controlPoints.length;
+		for (int i = 1; i < length; i += 3) {
+			mPath.cubicTo(minDimen * controlPoints[i][0], minDimen * controlPoints[i][1],
+					minDimen * controlPoints[i + 1][0], minDimen * controlPoints[i + 1][1],
+					minDimen * controlPoints[i + 2][0], minDimen * controlPoints[i + 2][1]);
+		}
+		canvas.drawPath(mPath, mPaint);
+	}
 
-        int width = getMeasuredWidth();
-        int height = getMeasuredHeight();
-        int widthWithoutPadding = width - getPaddingLeft() - getPaddingRight();
-        int heigthWithoutPadding = height - getPaddingTop() - getPaddingBottom();
+	@Override
+	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+		super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
-        int maxWidth = (int) (heigthWithoutPadding * RATIO);
-        int maxHeight = (int) (widthWithoutPadding / RATIO);
+		int width = getMeasuredWidth();
+		int height = getMeasuredHeight();
+		int widthWithoutPadding = width - getPaddingLeft() - getPaddingRight();
+		int heigthWithoutPadding = height - getPaddingTop() - getPaddingBottom();
 
-        if (widthWithoutPadding > maxWidth) {
-            width = maxWidth + getPaddingLeft() + getPaddingRight();
-        } else {
-            height = maxHeight + getPaddingTop() + getPaddingBottom();
-        }
+		int maxWidth = (int) (heigthWithoutPadding * RATIO);
+		int maxHeight = (int) (widthWithoutPadding / RATIO);
 
-        setMeasuredDimension(width, height);
-    }
+		if (widthWithoutPadding > maxWidth) {
+			width = maxWidth + getPaddingLeft() + getPaddingRight();
+		} else {
+			height = maxHeight + getPaddingTop() + getPaddingBottom();
+		}
 
-    private void init() {
-        // A new paint with the style as stroke.
-        mPaint = new Paint();
-        mPaint.setAntiAlias(true);
-        mPaint.setColor(Color.BLACK);
-        mPaint.setStrokeWidth(2.0f);
-        mPaint.setStyle(Paint.Style.STROKE);
-        mPath = new Path();
-    }
+		setMeasuredDimension(width, height);
+	}
 }
