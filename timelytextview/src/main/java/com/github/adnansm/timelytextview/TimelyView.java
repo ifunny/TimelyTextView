@@ -28,6 +28,7 @@ public class TimelyView extends View {
 					object.setControlPoints(value);
 				}
 			};
+
 	private Paint mPaint = null;
 	private Path mPath = null;
 	private float[][] controlPoints = null;
@@ -72,15 +73,19 @@ public class TimelyView extends View {
 	public ObjectAnimator animate(int start, int end) {
 		float[][] startPoints = NumberUtils.getControlPointsFor(start);
 		float[][] endPoints = NumberUtils.getControlPointsFor(end);
-
-		return ObjectAnimator.ofObject(this, CONTROL_POINTS_PROPERTY, new TimelyEvaluator(), startPoints, endPoints);
+		lastEnd = end;
+		return ObjectAnimator.ofObject(this, CONTROL_POINTS_PROPERTY, new TimelyEvaluator(),
+				startPoints, endPoints);
 	}
 
-	public ObjectAnimator animate(int end) {
-		float[][] startPoints = NumberUtils.getControlPointsFor(-1);
-		float[][] endPoints = NumberUtils.getControlPointsFor(end);
+	private int lastEnd = -1;
 
-		return ObjectAnimator.ofObject(this, CONTROL_POINTS_PROPERTY, new TimelyEvaluator(), startPoints, endPoints);
+	public ObjectAnimator animate(int end) {
+		float[][] startPoints = NumberUtils.getControlPointsFor(lastEnd);
+		float[][] endPoints = NumberUtils.getControlPointsFor(end);
+		lastEnd = end;
+		return ObjectAnimator.ofObject(this, CONTROL_POINTS_PROPERTY, new TimelyEvaluator(),
+				startPoints, endPoints);
 	}
 
 	@Override
