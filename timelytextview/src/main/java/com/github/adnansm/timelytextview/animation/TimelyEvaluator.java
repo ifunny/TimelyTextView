@@ -1,6 +1,6 @@
 package com.github.adnansm.timelytextview.animation;
 
-import com.nineoldandroids.animation.TypeEvaluator;
+import android.animation.TypeEvaluator;
 
 public class TimelyEvaluator implements TypeEvaluator<float[][]> {
     private float[][] _cachedPoints = null;

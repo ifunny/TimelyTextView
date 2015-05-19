@@ -1,20 +1,22 @@
 package com.github.adnansm.timelytextview;
 
+import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.util.AttributeSet;
+import android.util.Property;
 import android.view.View;
+
 import com.github.adnansm.timelytextview.animation.TimelyEvaluator;
 import com.github.adnansm.timelytextview.model.NumberUtils;
-import com.nineoldandroids.animation.ObjectAnimator;
-import com.nineoldandroids.util.Property;
 
 public class TimelyView extends View {
     private static final float                           RATIO                   = 1f;
-    private static final Property<TimelyView, float[][]> CONTROL_POINTS_PROPERTY = new Property<TimelyView, float[][]>(float[][].class, "controlPoints") {
+    private static final Property<TimelyView, float[][]> CONTROL_POINTS_PROPERTY =
+            new Property<TimelyView, float[][]>(float[][].class, "controlPoints") {
         @Override
         public float[][] get(TimelyView object) {
             return object.getControlPoints();
@@ -72,15 +74,11 @@ public class TimelyView extends View {
         super.onDraw(canvas);
         if (controlPoints == null) return;
 
-        int length = controlPoints.length;
-
-        int height = getMeasuredHeight();
-        int width = getMeasuredWidth();
-
-        float minDimen = height > width ? width : height;
+        final float minDimen = 0.95f * Math.min(getWidth(), getHeight());
 
         mPath.reset();
         mPath.moveTo(minDimen * controlPoints[0][0], minDimen * controlPoints[0][1]);
+        final int length = controlPoints.length;
         for (int i = 1; i < length; i += 3) {
             mPath.cubicTo(minDimen * controlPoints[i][0], minDimen * controlPoints[i][1],
                           minDimen * controlPoints[i + 1][0], minDimen * controlPoints[i + 1][1],
@@ -115,7 +113,7 @@ public class TimelyView extends View {
         mPaint = new Paint();
         mPaint.setAntiAlias(true);
         mPaint.setColor(Color.BLACK);
-        mPaint.setStrokeWidth(5.0f);
+        mPaint.setStrokeWidth(2.0f);
         mPaint.setStyle(Paint.Style.STROKE);
         mPath = new Path();
     }
