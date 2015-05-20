@@ -70,22 +70,21 @@ public class TimelyView extends View {
 		invalidate();
 	}
 
+	private int lastEnd = -1;
+
 	public ObjectAnimator animate(int start, int end) {
-		float[][] startPoints = NumberUtils.getControlPointsFor(start);
-		float[][] endPoints = NumberUtils.getControlPointsFor(end);
+		if (start == end) {
+			return null;
+		}
+		final float[][] startPoints = NumberUtils.getControlPointsFor(start);
+		final float[][] endPoints = NumberUtils.getControlPointsFor(end);
 		lastEnd = end;
 		return ObjectAnimator.ofObject(this, CONTROL_POINTS_PROPERTY, new TimelyEvaluator(),
 				startPoints, endPoints);
 	}
 
-	private int lastEnd = -1;
-
 	public ObjectAnimator animate(int end) {
-		float[][] startPoints = NumberUtils.getControlPointsFor(lastEnd);
-		float[][] endPoints = NumberUtils.getControlPointsFor(end);
-		lastEnd = end;
-		return ObjectAnimator.ofObject(this, CONTROL_POINTS_PROPERTY, new TimelyEvaluator(),
-				startPoints, endPoints);
+		return animate(lastEnd, end);
 	}
 
 	@Override
